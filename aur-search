@@ -1,0 +1,19 @@
+#!/bin/bash
+
+if [ -z "$1" ] || [ "$1" == "-h" ] || [ "$1" == "--help" ]; then 
+        echo "Usage: aur-search <name>"
+        exit 1
+fi
+
+RES=$(curl -s "https://aur.archlinux.org/rpc/?v=5&type=search&arg=$1")
+
+ERR=$(echo "$RES" | jq -r '.error')
+
+if [ "$ERR" != "null" ]; then
+        echo $ERR
+        exit 1
+fi
+
+WIDTH=$(stty size | cut -d ' ' -f 2)
+
+echo "$RES" | jq -r '.results | .[] | .Name + "|" + .Version + "|" + .Description' | column -t -s '|' | cut -c 1-${WIDTH}
